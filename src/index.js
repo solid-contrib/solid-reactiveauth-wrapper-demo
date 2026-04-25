@@ -53,16 +53,16 @@ function extract() {
 }
 
 function normalize(data) {
-    return data ?? parse(
+    return data ?? parse(`
         {
-            book: {
-                title: "",
-                author: {
-                    name: ""
+            "book": {
+                "title": "",
+                "author": {
+                    "name": ""
                 }
             }
         }
-    )
+    `)
 }
 
 //#endregion
@@ -70,23 +70,23 @@ function normalize(data) {
 //#region Data operations
 
 async function load(id) {
-    return window[id]
+    return localStorage.getItem(id) ?? undefined
 }
 
 async function save(id, data) {
-    window[id] = data
+    localStorage.setItem(id, data)
 }
 
 async function remove(id) {
-    delete window[id]
+    localStorage.removeItem(id)
 }
 
 function parse(data) {
-    return data
+    return data === undefined ? undefined : JSON.parse(data)
 }
 
 function serialize(data) {
-    return data
+    return JSON.stringify(data)
 }
 
 //#endregion
