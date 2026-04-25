@@ -8,6 +8,24 @@
         <script src="./main.js" type="module"></script>
     </head>
     <body>
-        <p>Solid App 101</p>
+        <form>
+            <fieldset>
+                <legend>Book</legend>
+                <label>
+                    <span>Title</span>
+                    <input class="title" required>
+                </label>
+                <fieldset>
+                    <legend>Author</legend>
+                    <label>
+                        <span>Name</span>
+                        <input class="name" required>
+                    </label>
+                </fieldset>
+            </fieldset>
+            <button>Save</button>
+        </form>
+        <button class="load">Load</button>
+        <button class="remove">Remove</button>
     </body>
 </html>
