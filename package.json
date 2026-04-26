@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "npm install && webpack serve --mode development --devtool source-map"
+  },
+  "devDependencies": {
+    "webpack": "^5",
+    "webpack-cli": "^7",
+    "webpack-dev-server": "^5"
+  }
+}
