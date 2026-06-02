@@ -1,5 +1,6 @@
 import * as A from "@solid/reactive-authentication"
 import * as M from "@solid/object"
+import * as W from "@rdfjs/wrapper"
 import * as N from "n3"
 
 //#region Elements
@@ -23,7 +24,7 @@ loadButton.addEventListener("click", onLoad)
 removeButton.addEventListener("click", onRemove)
 
 async function onLoad() {
-    populate(normalize(parse(await load(await identify()))))
+    populate(normalize(parse(await load(await identify()), await identify())))
 }
 
 async function onSave(e) {
@@ -62,15 +63,14 @@ function extract() {
 
 function normalize(data) {
     return data ?? parse(`
-        {
-            "book": {
-                "title": "",
-                "author": {
-                    "name": ""
-                }
-            }
-        }
-    `)
+        BASE <http://example.com/>
+        [
+            <title> "" ;
+            <author> [
+                <name> ""
+            ]
+        ] .
+`)
 }
 
 async function authenticate() {
@@ -113,19 +113,28 @@ async function load(id) {
 }
 
 async function save(id, data) {
-    await fetch(id, {method: "PUT", body: data, headers: {"Content-Type": "application/json"}})
+    await fetch(id, {method: "PUT", body: data, headers: {"Content-Type": "text/turtle"}})
 }
 
 async function remove(id) {
     await fetch(id, {method: "DELETE"})
 }
 
-function parse(data) {
-    return data === undefined ? undefined : JSON.parse(data)
+function parse(data, baseIRI) {
+    return data === undefined ? undefined : new Data(parseRdf(data, baseIRI), N.DataFactory)
 }
 
 function serialize(data) {
-    return JSON.stringify(data)
+    return new Promise((resolve, reject) => {
+        const writer = new N.Writer
+
+        writer.addQuads([...data])
+
+        writer.end((error, result) => {
+            if (error) reject(error)
+            else resolve(result)
+        })
+    })
 }
 
 function parseRdf(rdf, baseIRI) {
@@ -133,6 +142,50 @@ function parseRdf(rdf, baseIRI) {
     store.addQuads(new N.Parser({baseIRI}).parse(rdf));
 
     return store
+}
+
+//#endregion
+
+//#region Mapping
+
+const EX = {
+    author: "http://example.com/author",
+    name: "http://example.com/name",
+    title: "http://example.com/title",
+}
+
+class Data extends W.DatasetWrapper {
+    get book() {
+        for (const result of this.subjectsOf(EX.title, Book)) return result
+    }
+}
+
+class Book extends W.TermWrapper {
+    get title() {
+        return W.OptionalFrom.subjectPredicate(this, EX.title, W.LiteralAs.string)
+    }
+
+    set title(value) {
+        W.OptionalAs.object(this, EX.title, value, W.LiteralFrom.string)
+    }
+
+    get author() {
+        return W.OptionalFrom.subjectPredicate(this, EX.author, W.TermAs.instance(Person))
+    }
+
+    set author(value) {
+        W.OptionalAs.object(this, EX.author, value, W.TermFrom.instance)
+    }
+}
+
+class Person extends W.TermWrapper {
+    get name() {
+        return W.OptionalFrom.subjectPredicate(this, EX.name, W.LiteralAs.string)
+    }
+
+    set name(value) {
+        W.OptionalAs.object(this, EX.name, value, W.LiteralFrom.string)
+    }
 }
 
 //#endregion
