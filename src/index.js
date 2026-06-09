@@ -11,6 +11,7 @@ const nameInput = document.querySelector("input.name")
 const loadButton = document.querySelector("button.load")
 const removeButton = document.querySelector("button.remove")
 const authorizationCodeFlow = document.querySelector("authorization-code-flow")
+const idpPicker = document.querySelector("idp-picker")
 
 //#endregion
 
@@ -76,8 +77,8 @@ function normalize(data) {
 async function authenticate() {
     const callbackUri = new URL("/callback.html", location.href).toString()
 
-    const dPoPTokenProvider = new A.DPoPTokenProvider(callbackUri, authorizationCodeFlow.getCode.bind(authorizationCodeFlow))
-    new A.ReactiveFetchManager([dPoPTokenProvider])
+    const dPoPTokenProvider = new A.DPoPTokenProvider(callbackUri, authorizationCodeFlow.getCode.bind(authorizationCodeFlow), idpPicker.getIssuer.bind(idpPicker))
+    new A.ReactiveFetchManager([dPoPTokenProvider]).registerGlobally()
 }
 
 async function storage() {
